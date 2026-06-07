@@ -1,0 +1,6 @@
+apiVersion: v2
+name: persona-drift
+description: AI persona swarm simulation with drift observatory
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

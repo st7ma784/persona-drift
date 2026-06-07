@@ -1,0 +1,46 @@
+app:
+  image:
+    repository: ghcr.io/YOUR_ORG/persona-drift-app
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  ingress:
+    enabled: true
+    className: nginx
+    hostname: persona-drift.example.com
+    tls: false
+    # tlsSecret: persona-drift-tls
+
+ollama:
+  image:
+    repository: ollama/ollama
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 500m
+      memory: 4Gi
+    limits:
+      cpu: 4
+      memory: 16Gi
+  persistence:
+    size: 50Gi
+    storageClass: ""          # leave blank to use cluster default
+  gpu:
+    enabled: false
+    # Set to true and configure tolerations/nodeSelector for GPU nodes:
+    # nodeSelector:
+    #   accelerator: nvidia-tesla-t4
+    # tolerations:
+    #   - key: nvidia.com/gpu
+    #     operator: Exists
+    #     effect: NoSchedule
+  # Pull a default model on first startup via an init container
+  defaultModel: "llama3.2:3b"

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "persona-drift.name" . }}-ollama
+  labels:
+    {{- include "persona-drift.labels" . | nindent 4 }}
+    component: ollama
+spec:
+  serviceName: {{ include "persona-drift.name" . }}-ollama
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "persona-drift.name" . }}-ollama
+  template:
+    metadata:
+      labels:
+        app: {{ include "persona-drift.name" . }}-ollama
+        {{- include "persona-drift.labels" . | nindent 8 }}
+    spec:
+      {{- if .Values.ollama.gpu.enabled }}
+      nodeSelector:
+        {{- toYaml .Values.ollama.gpu.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.ollama.gpu.tolerations | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: pull-model
+          image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag }}"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              ollama serve &
+              sleep 5
+              ollama pull {{ .Values.ollama.defaultModel }}
+              kill %1
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+          env:
+            - name: OLLAMA_ORIGINS
+              value: "*"
+      containers:
+        - name: ollama
+          image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag }}"
+          imagePullPolicy: {{ .Values.ollama.image.pullPolicy }}
+          ports:
+            - containerPort: 11434
+          env:
+            - name: OLLAMA_ORIGINS
+              value: "*"
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+          resources:
+            {{- toYaml .Values.ollama.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /api/tags
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: ollama-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.ollama.persistence.storageClass }}
+        storageClassName: {{ .Values.ollama.persistence.storageClass }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.ollama.persistence.size }}
