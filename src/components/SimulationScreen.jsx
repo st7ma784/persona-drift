@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient, streamChat, jsonChat } from '../lib/ollama'
 import { agentSystemPrompt, agentUserMessage, assessorPrompt, arbiterPrompt } from '../lib/prompts'
+import { exportJSON, exportCSV, exportMarkdown } from '../lib/exportData'
 import AgentCard from './AgentCard'
 import TimelineEvent from './TimelineEvent'
 import InjectFlawModal from './InjectFlawModal'
+import ExportMenu from './ExportMenu'
 
 export default function SimulationScreen({ config }) {
   const [agents, setAgents] = useState(config.agents)
@@ -172,6 +174,13 @@ export default function SimulationScreen({ config }) {
           </span>
         )}
         <div style={{ flex: 1 }} />
+        <ExportMenu
+          disabled={timeline.length === 0}
+          onExportJSON={() => exportJSON({ scenario: config.scenario, agents, timeline, tick })}
+          onExportCSV={() => exportCSV({ agents })}
+          onExportMarkdown={() => exportMarkdown({ scenario: config.scenario, agents, timeline, tick })}
+        />
+        <span style={{ color: '#2e2e50' }}>│</span>
         <button onClick={() => setAutoRun(r => !r)} style={{
           background: autoRun ? '#ff6b6b18' : '#6ee7b718',
           border: `1px solid ${autoRun ? '#ff6b6b' : '#6ee7b7'}`,
