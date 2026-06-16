@@ -16,7 +16,23 @@ function ScoreBar({ label, value, color }) {
   )
 }
 
-export default function AgentCard({ agent, isActive, onInjectFlaw }) {
+function pctColor(v) {
+  if (v == null) return '#606090'
+  return v >= 60 ? '#6ee7b7' : v >= 35 ? '#ffd43b' : '#ff6b6b'
+}
+
+function VoteStat({ label, value, suffix = '%', title }) {
+  return (
+    <div title={title} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, flex: 1 }}>
+      <span style={{ color: pctColor(value), fontWeight: 700, fontSize: 13 }}>
+        {value == null ? '—' : `${value}${suffix}`}
+      </span>
+      <span style={{ color: '#606090', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</span>
+    </div>
+  )
+}
+
+export default function AgentCard({ agent, isActive, onInjectFlaw, voteStats }) {
   const latest = agent.driftLog.at(-1)
   const baseline = agent.driftLog[0]
   const scores = latest?.scores ?? { alignment: 100, cooperation: 100, transparency: 100, restraint: 100, tone: 100 }
@@ -66,6 +82,22 @@ export default function AgentCard({ agent, isActive, onInjectFlaw }) {
               {fb}
             </span>
           ))}
+        </div>
+      )}
+
+      {voteStats && (voteStats.proposed > 0 || voteStats.cast > 0) && (
+        <div style={{ borderTop: '1px solid #1e1e38', paddingTop: 7 }}>
+          <div style={{ color: '#606090', fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 }}>
+            🗳 Voting Record
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <VoteStat label="Pass rate" value={voteStats.passRate}
+              title={`Proposals called: ${voteStats.proposed} · passed: ${voteStats.passed}`} />
+            <VoteStat label="Approval" value={voteStats.approval}
+              title="Share of yay ballots their proposals attract from peers — how well-liked their ideas are" />
+            <VoteStat label="On-side %" value={voteStats.winRate}
+              title={`Ballots cast: ${voteStats.cast} · how often their vote matched the eventual result`} />
+          </div>
         </div>
       )}
 

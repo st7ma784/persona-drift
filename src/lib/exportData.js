@@ -91,6 +91,28 @@ export function exportMarkdown({ scenario, agents, timeline, tick }) {
   lines.push('---', '', '## Event Timeline', '')
 
   for (const ev of timeline) {
+    if (ev.kind === 'world-event') {
+      lines.push(`### T${ev.tick} — ⏱ World Event`)
+      lines.push(`*${ev.content}*`)
+      if (ev.preparedness) lines.push(`**Preparedness:** ${ev.preparedness}`)
+      if (ev.hint) lines.push(`> 🔎 *${ev.hint}*`)
+      lines.push('')
+      continue
+    }
+    if (ev.kind === 'vote-open') {
+      lines.push(`### T${ev.tick} — 🗳 Vote called by ${ev.proposerName}`)
+      lines.push(`> "${ev.voteText}"`)
+      lines.push('')
+      continue
+    }
+    if (ev.kind === 'vote-resolved') {
+      lines.push(`### T${ev.tick} — ${ev.passed ? '✓ Vote passed' : '✗ Vote failed'}`)
+      lines.push(`> "${ev.voteText}" — **${ev.tally?.yay ?? 0} yay / ${ev.tally?.nay ?? 0} nay**`)
+      if (ev.arbiterOutcome) lines.push(`> **Outcome (${ev.arbiterConsequence ?? 'neutral'}):** ${ev.arbiterOutcome}`)
+      lines.push('')
+      continue
+    }
+
     const agent = agentMap[ev.agentId]
     lines.push(`### T${ev.tick} — ${ev.agentName}`)
     lines.push(ev.content)

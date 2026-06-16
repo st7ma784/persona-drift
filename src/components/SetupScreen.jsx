@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AGENT_COLORS } from '../lib/constants'
+import { AGENT_COLORS, TROPE_PRESETS } from '../lib/constants'
 import { generateAgentsPrompt } from '../lib/prompts'
 import { createClient, fetchModels, jsonChat } from '../lib/ollama'
 
@@ -57,7 +57,7 @@ export default function SetupScreen({ onStart }) {
     if (!model || !scenario.trim() || agents.length === 0) return
     onStart({
       ollamaUrl: url, model, scenario: scenario.trim(),
-      agents: agents.map(a => ({ ...a, flaws: [], messageHistory: [], driftLog: [] })),
+      agents: agents.map(a => ({ ...a, flaws: [], messageHistory: [], driftLog: [], voteCooldownUntil: 0 })),
     })
   }
 
