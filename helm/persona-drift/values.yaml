@@ -1,6 +1,6 @@
 app:
   image:
-    repository: ghcr.io/YOUR_ORG/persona-drift-app
+    repository: ghcr.io/st7ma784/persona-drift
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 1
@@ -14,7 +14,7 @@ app:
   ingress:
     enabled: true
     className: nginx
-    hostname: persona-drift.example.com
+    hostname: personas.stevemander.uk
     tls: false
     # tlsSecret: persona-drift-tls
 
