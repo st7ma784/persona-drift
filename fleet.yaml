@@ -7,13 +7,21 @@ defaultNamespace: persona-drift
 helm:
   chart: ./helm/persona-drift
   releaseName: persona-drift
+  # Pull cluster domain/mode/ingress annotations from the ConfigMap that
+  # ClusterOS's node-agent publishes — avoids hardcoding a domain in this repo.
+  # Use "fleet-local" for GitRepos targeting the local cluster (the common case
+  # on ClusterOS), or "fleet-default" for GitRepos targeting remote clusters.
+  valuesFrom:
+    - configMapKeyRef:
+        name: clusteros-helm-values
+        namespace: fleet-local
+        key: values.yaml
   # Override values per cluster/environment using Fleet's targetCustomizations:
-  # valuesFiles:
-  #   - helm/persona-drift/values.yaml
   # values:
   #   app:
   #     ingress:
-  #       hostname: persona-drift.your-cluster.example.com
+  #       subdomain: personas   # host becomes "<subdomain>.<global.clusterDomain>"
+  #       hostname: persona-drift.your-cluster.example.com  # fallback if no clusterDomain
 
 # Target all clusters by default — restrict with a clusterSelector if needed:
 # targets:

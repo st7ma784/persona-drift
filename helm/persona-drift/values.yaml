@@ -1,3 +1,11 @@
+# Populated by ClusterOS's clusteros-helm-values ConfigMap via Fleet's
+# helm.valuesFrom (see fleet.yaml). Defaults below are only used for manual
+# `helm install` outside of Fleet/GitOps.
+global:
+  clusterDomain: ""        # e.g. "example.com" — filled in by clusteros-helm-values
+  clusterMode: "nip"        # "domain" | "nip"
+  ingressAnnotations: {}    # ssl-redirect etc., filled in by clusteros-helm-values
+
 app:
   image:
     repository: ghcr.io/st7ma784/persona-drift
@@ -14,15 +22,19 @@ app:
   ingress:
     enabled: true
     className: nginx
-    hostname: personas.stevemander.uk
+    subdomain: personas        # host becomes "<subdomain>.<global.clusterDomain>"
+    hostname: ""               # manual override/fallback when no cluster domain is configured
     tls: false
     # tlsSecret: persona-drift-tls
 
 ollama:
   image:
     repository: ollama/ollama
-    tag: latest
+    tag: "0.5.7"
     pullPolicy: IfNotPresent
+  # Max seconds the init container will wait for `ollama pull` before failing
+  # (fails fast with a clear error instead of hanging the GitOps rollout indefinitely)
+  pullModelTimeoutSeconds: 600
   resources:
     requests:
       cpu: 500m

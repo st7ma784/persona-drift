@@ -1,4 +1,10 @@
 {{- if .Values.app.ingress.enabled }}
+{{- $host := .Values.app.ingress.hostname }}
+{{- if .Values.global.clusterDomain }}
+{{- $host = printf "%s.%s" .Values.app.ingress.subdomain .Values.global.clusterDomain }}
+{{- else if not $host }}
+{{- $host = printf "%s.cluster.local" .Values.app.ingress.subdomain }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -6,6 +12,9 @@ metadata:
   labels:
     {{- include "persona-drift.labels" . | nindent 4 }}
   annotations:
+    {{- with .Values.global.ingressAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-buffering: "off"   # streaming
@@ -14,11 +23,11 @@ spec:
   {{- if .Values.app.ingress.tls }}
   tls:
     - hosts:
-        - {{ .Values.app.ingress.hostname }}
+        - {{ $host }}
       secretName: {{ .Values.app.ingress.tlsSecret | default (printf "%s-tls" (include "persona-drift.name" .)) }}
   {{- end }}
   rules:
-    - host: {{ .Values.app.ingress.hostname }}
+    - host: {{ $host }}
       http:
         paths:
           - path: /
